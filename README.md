@@ -1,3 +1,4 @@
+[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=16963180)
 # Markov Chains
 
 Markov Chains are a simple way to model the probability of a sequence of events. In the context of text generation, a Markov Chain can be used to generate text that is similar to a given corpus. The basic idea is to build a dictionary of transitions between words in the corpus, and then use this dictionary to generate new text.
