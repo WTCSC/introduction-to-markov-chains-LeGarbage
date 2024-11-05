@@ -1,46 +1,15 @@
 import random
+import argparse
+import os
 
-"""
-Create the sample text and the dictionary to store word transitions
 
-TODO: Replace the sample text with a larger text for more interesting results
-"""
-text = "Mary had a little lamb its fleece was white as snow"
-transitions = {}
+def parse_file(path): # Turns a file into a single string
+    file = open(path, "r")
+    parsed = " ".join([i for i in file.readlines()])
+    file.close()
+    return parsed
 
-"""
-Build the Markov Chain
-
-1. Split the text into words
-2. Iterate over the words
-3. For each word, add the next word to the list of transitions
-
-TODO: Handle punctuation and capitalization for better results
-"""
-words = text.split()
-for i in range(len(words) - 1):
-    current_word = words[i]
-    next_word = words[i + 1]
-    if current_word not in transitions:
-        transitions[current_word] = []
-    transitions[current_word].append(next_word)
-
-"""
-Generate new text using the Markov Chain, starting with a given word and
-generating a specified number of words:
-
-1. Start with the given word
-2. Add the word to the result list
-3. For the specified number of words:
-    a. If the current word is in the transitions dictionary, choose a random next word
-    b. Add the next word to the result list
-    c. Update the current word to the next word
-4. Return the generated text as a string
-
-TODO: Clean up the generated text for better formatting and readability,
-e.g., capitalization, punctuation, line breaks, etc.
-"""
-def generate_text(start_word, num_words):
+def generate_text(start_word, num_words): # Generate the text based on the Markov chain
     current_word = start_word
     result = [current_word]
     for _ in range(num_words - 1):
@@ -50,11 +19,56 @@ def generate_text(start_word, num_words):
             current_word = next_word
         else:
             break
-    return " ".join(result)
+    return clean(" ".join(result))
 
-"""
-Example usage, generating 10 words starting with "Mary"
+def clean(text): # Formats the text, capitalizing sentences and dealing with punctuation
+    result = ""
+    text = text.split()
+    for pos, word in enumerate(text):
+        if text[pos - 1] in sentence_end or pos == 0 or word == "i": # If the previous word was the end of a sentence, this is the first word, or it is "I",
+            word = word.capitalize() # Then capitalize the word
+        if word not in punctuation and not pos == 0: # Add a space before the word if it's not punctuation or the first word
+            word = " " + word
+        result += word
+    return result
+        
 
-TODO: Accept user input for the starting word and number of words to generate
-"""
-print(generate_text("Mary", 10))
+
+parser = argparse.ArgumentParser() # Gets the text, first word, and length of the response from the user
+parser.add_argument("text")
+parser.add_argument("start")
+parser.add_argument("length", type=int)
+args = parser.parse_args()
+
+if os.path.isfile(args.text): # If the text is a file, parse it
+    text = parse_file(args.text)
+else: # Otherwise, it's just a string
+    text = args.text
+
+transitions = {}
+
+words = text.lower().split() # Make the text lowercase and split it into individual words
+
+i = 0
+punctuation = [".", ",", "!", ";", '"', "'", "?", ":", "-"]
+sentence_end = ".!?"
+
+while i < len(words): # Split the punctuation into individual words
+    word = words[i]
+    for punct in punctuation:
+        if word.startswith(punct) or word.endswith(punct): # If the word has punctuation attatched to it (done to not split up words like "don't")
+            words.pop(i) # Remove the word
+            words.insert(i, punct) # and replace it with the word and punctuation seprately
+            words.insert(i, word.replace(punct, ""))
+            i += 1
+    i += 1
+
+
+for i in range(len(words) - 1): # Build the Markov chain
+    current_word = words[i]
+    next_word = words[i + 1]
+    if current_word not in transitions:
+        transitions[current_word] = []
+    transitions[current_word].append(next_word)
+
+print(generate_text(args.start, args.length))
